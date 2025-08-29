@@ -26,11 +26,11 @@ Verwendung
 ----------
 
 ```sh
-uv run python main.py backend
+uv run main.py backend
 
-uv run python main.py set <username> [--service <service>] [--password <pw>] [--no-confirm]
-uv run python main.py get <username> [--service <service>] [--quiet]
-uv run python main.py delete <username> [--service <service>]
+uv run main.py set <username> [--service <service>] [--password <pw>] [--no-confirm]
+uv run main.py get <username> [--service <service>] [--quiet]
+uv run main.py delete <username> [--service <service>]
 ```
 
 Beispiele
@@ -38,19 +38,19 @@ Beispiele
 
 ```sh
 # Passwort für user "alice" speichern (Service-Name default: keyring-test)
-uv run python main.py set alice
+uv run main.py set alice
 
 # Passwort abrufen
-uv run python main.py get alice
+uv run main.py get alice
 
 # Nur das Passwort (für Pipes/Skripte)
-uv run python main.py get alice --quiet
+uv run main.py get alice --quiet
 
 # Passwort löschen
-uv run python main.py delete alice
+uv run main.py delete alice
 
 # Aktives Backend anzeigen
-uv run python main.py backend
+uv run main.py backend
 ```
 
 Sicherheit und Nutzerkontext (wichtig!)
@@ -63,7 +63,7 @@ Sicherheit und Nutzerkontext (wichtig!)
   `get/set/delete` fehl oder nutzen ein weniger sicheres Fallback, wenn eines installiert ist.
 - Übergib Passwörter nicht über die Kommandozeile (`--password`), wenn andere Nutzer
   Prozesslisten einsehen können. Nutze die sichere Eingabeaufforderung (Prompt) ohne Echo.
-- Prüfe das aktive Backend mit `python main.py backend` oder `keyring --list-backends`.
+- Prüfe das aktive Backend mit `uv run main.py backend` oder `keyring --list-backends`.
 
 Plattform-Hinweise
 ------------------
@@ -88,7 +88,7 @@ Linux
 Fehlersuche
 -----------
 
-- Welches Backend? `python main.py backend` oder `python -m keyring --list-backends`
+- Welches Backend? `uv run main.py backend` oder `uv run -m keyring --list-backends`
 - Kein Eintrag gefunden: Service-Name und Username exakt gleich verwenden wie beim Speichern.
 - Fehler auf Linux/headless: Prüfe, ob ein Secret Service läuft (dbus, gnome-keyring-daemon).
 
