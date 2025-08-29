@@ -18,41 +18,47 @@ from __future__ import annotations
 import argparse
 import sys
 from getpass import getpass
-from typing import Optional
 
 import keyring
 from keyring.errors import KeyringError, PasswordDeleteError
 
-
 DEFAULT_SERVICE = "keyring-test"
 
 
-def _prompt_password(confirm: bool = True) -> str:
+def _prompt_password_with_confirm() -> str:
     pw = getpass("Passwort: ")
-    if confirm:
-        pw2 = getpass("Passwort (Wiederholung): ")
-        if pw != pw2:
-            print("Fehler: Passwörter stimmen nicht überein.", file=sys.stderr)
-            sys.exit(2)
-    if not pw:
-        print("Fehler: Leeres Passwort ist nicht erlaubt.", file=sys.stderr)
+    pw2 = getpass("Passwort (Wiederholung): ")
+    if pw != pw2:
+        print("Fehler: Passwörter stimmen nicht überein.", file=sys.stderr)
         sys.exit(2)
+    return pw
+
+
+def _prompt_password_without_confirm() -> str:
+    pw = getpass("Passwort: ")
     return pw
 
 
 def cmd_set(args: argparse.Namespace) -> int:
     service = args.service
     username = args.username
-    password: Optional[str] = args.password
+    password: str | None = args.password
     if password is None:
-        password = _prompt_password(confirm=not args.no_confirm)
+        if not args.no_confirm:
+            password = _prompt_password_with_confirm()
+        else:
+            password = _prompt_password_without_confirm()
+        if not password:
+            print("Fehler: Leeres Passwort ist nicht erlaubt.", file=sys.stderr)
+            sys.exit(2)
     try:
         keyring.set_password(service, username, password)
         print(f"Gespeichert: service='{service}', username='{username}'")
-        return 0
     except KeyringError as e:
         print(f"Keyring-Fehler beim Speichern: {e}", file=sys.stderr)
         return 1
+    else:
+        return 0
 
 
 def cmd_get(args: argparse.Namespace) -> int:
@@ -68,10 +74,11 @@ def cmd_get(args: argparse.Namespace) -> int:
             print(pw, end="")
         else:
             print(f"Passwort für '{username}' in service '{service}':\n{pw}")
-        return 0
     except KeyringError as e:
         print(f"Keyring-Fehler beim Abrufen: {e}", file=sys.stderr)
         return 1
+    else:
+        return 0
 
 
 def cmd_delete(args: argparse.Namespace) -> int:
@@ -80,13 +87,14 @@ def cmd_delete(args: argparse.Namespace) -> int:
     try:
         keyring.delete_password(service, username)
         print(f"Gelöscht: service='{service}', username='{username}'")
-        return 0
     except PasswordDeleteError:
         print("Kein Eintrag zum Löschen gefunden.", file=sys.stderr)
         return 3
     except KeyringError as e:
         print(f"Keyring-Fehler beim Löschen: {e}", file=sys.stderr)
         return 1
+    else:
+        return 0
 
 
 def cmd_backend(_: argparse.Namespace) -> int:
@@ -155,7 +163,7 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     return args.func(args)
